@@ -26,6 +26,10 @@ public partial class OrbitCamera : MonoBehaviour {
     private OrbitCameraConfiguration lastConfig;
     private static List<OrbitCameraConfiguration> orbitCameraConfigurations = new();
 
+    public delegate void OrbitCameraConfigurationChangedAction(OrbitCameraConfiguration previousConfiguration, OrbitCameraConfiguration newConfiguration);
+
+    public static event OrbitCameraConfigurationChangedAction configurationChanged;
+
     [RuntimeInitializeOnLoadMethod]
     private static void Initialize() {
         SceneManager.sceneUnloaded += OnUnloadScene;
@@ -157,6 +161,7 @@ public partial class OrbitCamera : MonoBehaviour {
         }
 
         currentConfiguration = next;
+        configurationChanged?.Invoke(currentConfiguration, next);
         tween = StartCoroutine(TweenTo(from, next, duration));
     }
 
