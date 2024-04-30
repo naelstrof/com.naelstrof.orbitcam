@@ -22,8 +22,8 @@ public partial class OrbitCamera : MonoBehaviour {
     private OrbitCameraData currentCameraData = new(){rotation = Quaternion.identity, position = Vector3.zero, fov = 65f, screenPoint = Vector2.one*0.5f, distance = 1f};
     private Coroutine tween;
     private SettingFloat mouseSensitivity;
+    private bool paused;
 
-    private OrbitCameraConfiguration lastConfig;
     private static List<OrbitCameraConfiguration> orbitCameraConfigurations = new();
 
     public delegate void OrbitCameraConfigurationChangedAction(OrbitCameraConfiguration previousConfiguration, OrbitCameraConfiguration newConfiguration);
@@ -51,6 +51,9 @@ public partial class OrbitCamera : MonoBehaviour {
     }
 
     private void Update() {
+        if (paused) {
+            return;
+        }
         // Always let player control
         Vector2 mouseDelta = Mouse.current.delta.ReadValue();
         if (Gamepad.current != null) {
@@ -70,7 +73,7 @@ public partial class OrbitCamera : MonoBehaviour {
         }
 
         //float mouseSensitivity = 0.1f;
-        mouseDelta *= mouseSensitivity.GetValue();
+        mouseDelta *= mouseSensitivity?.GetValue() ?? 0.01f;
 
         if (tracking) {
             _aim += mouseDelta;
@@ -92,6 +95,10 @@ public partial class OrbitCamera : MonoBehaviour {
     }
 
     private void SetOrbit(OrbitCameraData data) {
+        if (paused) {
+            return;
+        }
+        
         Quaternion cameraRot = data.rotation;
         
         cam.fieldOfView = data.fov;
@@ -101,6 +108,10 @@ public partial class OrbitCamera : MonoBehaviour {
         transform.position = data.position - screenRay.direction * distance;
         
         currentCameraData = data;
+    }
+
+    public static void SetPaused(bool paused) {
+        instance.paused = paused;
     }
     
     public static void AddConfiguration(OrbitCameraConfiguration newConfig, float tweenDuration = 0.4f) {
@@ -167,21 +178,25 @@ public partial class OrbitCamera : MonoBehaviour {
 
     IEnumerator TweenTo(OrbitCameraData from, OrbitCameraConfiguration next, float duration) {
         try {
-            float startTime = Time.time;
-            while (Time.time < startTime + duration) {
-                float t = (Time.time - startTime) / duration;
-                cam.transform.rotation = Quaternion.Inverse(instance.postRotationOffset)*Quaternion.Euler(-instance._aim.y, instance._aim.x, 0f);
-                SetOrbit(OrbitCameraData.Lerp(from, next.GetData(cam), t));
+            float timer = 0f;
+            while (timer < duration) {
+                if (!paused) {
+                    timer += Time.deltaTime;
+                    float t = timer / duration;
+                    cam.transform.rotation = Quaternion.Inverse(instance.postRotationOffset) * Quaternion.Euler(-instance._aim.y, instance._aim.x, 0f);
+                    SetOrbit(OrbitCameraData.Lerp(from, next.GetData(cam), t));
+                }
                 yield return new WaitForEndOfFrame();
             }
             SetOrbit(next.GetData(cam));
         } finally {
             tween = null;
         }
-        mouseSensitivity = SettingsManager.GetSetting("MouseSensitivity") as SettingFloat;}
+    }
+    
     public static Vector2 GetPlayerIntendedScreenAim() => instance._aim;
     private void LateUpdate() {
-        if (tween != null || currentConfiguration == null) {
+        if (tween != null || currentConfiguration == null || paused) {
             return;
         }
 
