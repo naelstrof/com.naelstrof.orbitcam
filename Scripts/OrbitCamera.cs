@@ -43,7 +43,8 @@ public partial class OrbitCamera : MonoBehaviour {
         instance = this;
         orbitCameraConfigurations.Insert(0,currentConfiguration);
         cam = GetComponent<Camera>();
-        SetOrbit(orbitCameraConfigurations[^1].GetData(cam));
+        currentConfiguration = orbitCameraConfigurations[^1];
+        SetOrbit(currentConfiguration.GetData(cam));
     }
 
     void Start() {
