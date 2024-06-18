@@ -29,6 +29,8 @@ public partial class OrbitCamera : MonoBehaviour {
     public delegate void OrbitCameraConfigurationChangedAction(OrbitCameraConfiguration previousConfiguration, OrbitCameraConfiguration newConfiguration);
 
     public static event OrbitCameraConfigurationChangedAction configurationChanged;
+    
+    public static OrbitCameraConfiguration GetConfiguration() => orbitCameraConfigurations.Count == 0 ? null : orbitCameraConfigurations[^1];
 
     [RuntimeInitializeOnLoadMethod]
     private static void Initialize() {
