@@ -14,6 +14,15 @@ public partial class OrbitCamera : MonoBehaviour {
     private OrbitCameraConfiguration currentConfiguration;
     
     private static OrbitCamera instance;
+    
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void Init() {
+        instance = null;
+        tracking = true;
+        orbitCameraConfigurations = new();
+        configurationChanged = null;
+    }
+    
     private Vector2 _aim;
     private Camera cam;
     private PlayerInput controls;
