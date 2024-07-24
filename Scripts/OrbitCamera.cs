@@ -222,7 +222,7 @@ public partial class OrbitCamera : MonoBehaviour {
     }
 
     public static Vector3 GetPlayerIntendedPosition() {
-        return instance.transform.position;
+        return instance.currentConfiguration.GetData(instance.cam).position;
     }
 
     public static void SetPlayerIntendedFacingDirection(Vector3 dir) {
