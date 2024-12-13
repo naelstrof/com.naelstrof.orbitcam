@@ -51,6 +51,10 @@ public partial class OrbitCamera : MonoBehaviour {
     }
 
     private void Awake() {
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
         instance = this;
         orbitCameraConfigurations.Insert(0,currentConfiguration);
         cam = GetComponent<Camera>();
