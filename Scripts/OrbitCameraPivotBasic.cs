@@ -22,7 +22,12 @@ public class OrbitCameraPivotBasic : OrbitCameraPivotBase {
         var rotation = cam.transform.rotation;
         float desiredDistance = GetDistanceFromPivot(cam, rotation, screenOffset);
         if (Time.deltaTime != 0f) {
-            distanceMemory = Mathf.SmoothDamp(distanceMemory, desiredDistance, ref distanceVel, 0.1f);
+            if (distanceMemory < desiredDistance) {
+                distanceMemory = Mathf.SmoothDamp(distanceMemory, desiredDistance, ref distanceVel, 0.1f);
+            } else { // Clipping into walls leads to bad flashing with unity's occlusion. Can cause some bad flickering with columns but it's worth it to prevent flickering the world.
+                distanceMemory = desiredDistance;
+                distanceVel = 0f;
+            }
         }
         return new OrbitCameraData {
             screenPoint = screenOffset,
