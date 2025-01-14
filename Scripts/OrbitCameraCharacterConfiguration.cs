@@ -38,8 +38,21 @@ public class OrbitCameraCharacterConfiguration : OrbitCameraConfiguration {
         float downUpSoft = Easing.InOutCubic(Mathf.Clamp01(-forward.y));
         Quaternion rot = Quaternion.AngleAxis(OrbitCamera.GetPlayerIntendedScreenAim().x, Vector3.up);
         float forwardBack = Easing.InOutCubic((Vector3.Dot(characterTransform.forward, rot * Vector3.forward)+1f)/2f);
-        (buttPivot as OrbitCameraPivotBasic)?.SetInfo(new Vector2(Mathf.Lerp(0.5f, standOffToSideTarget, downUp), 0.4f), 0.7f, 65f);
-        (shoulderPivot as OrbitCameraPivotBasic)?.SetInfo(new Vector2(Mathf.Lerp(standOffToSideTarget, 0.5f, downUpSoft), 0.5f), Mathf.Lerp(0.7f,1.2f,downUpSoft), 65f);
+
+        var buttPivotBasic = (OrbitCameraPivotBasic)buttPivot;
+        if (buttPivotBasic != null) {
+            buttPivotBasic.SetScreenOffset(new Vector2(Mathf.Lerp(0.5f, standOffToSideTarget, downUp), 0.4f));
+            buttPivotBasic.SetDesiredDistanceFromPivot(0.7f);
+            buttPivotBasic.SetBaseFOV(65f);
+        }
+
+        var shoulderPivotBasic = (OrbitCameraPivotBasic)shoulderPivot;
+        if (shoulderPivotBasic != null) {
+            shoulderPivotBasic.SetScreenOffset(new Vector2(Mathf.Lerp(standOffToSideTarget, 0.5f, downUpSoft), 0.5f));
+            shoulderPivotBasic.SetDesiredDistanceFromPivot(0.7f);
+            shoulderPivotBasic.SetBaseFOV(65f);
+        }
+
         OrbitCameraData forwardBackData = OrbitCameraData.Lerp(dickData, buttData, forwardBack);
         return OrbitCameraData.Lerp(forwardBackData, topData, downUp);
     }

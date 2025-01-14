@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements.Experimental;
 
@@ -10,13 +7,18 @@ public class OrbitCameraPivotBasic : OrbitCameraPivotBase {
     [SerializeField] protected float baseFOV = 65f;
     private float distanceMemory;
     private float distanceVel;
-
-    public void SetInfo(Vector2 screenOffset, float desiredDistanceFromPivot, float baseFOV) {
-        this.screenOffset = screenOffset;
-        this.desiredDistanceFromPivot = desiredDistanceFromPivot;
-        this.baseFOV = baseFOV;
+    public void SetBaseFOV(float fov) {
+        baseFOV = fov;
     }
+    public float GetBaseFOV() => baseFOV;
+    public void SetDesiredDistanceFromPivot(float desiredDistanceFromPivot) {
+        this.desiredDistanceFromPivot = desiredDistanceFromPivot;
+    }
+    public float GetDesiredDistanceFromPivot() => desiredDistanceFromPivot;
 
+    public void SetScreenOffset(Vector2 screenOffset) {
+        this.screenOffset = screenOffset;
+    }
     public Vector2 GetScreenOffset() => screenOffset;
     public override OrbitCameraData GetData(Camera cam) {
         var rotation = cam.transform.rotation;
