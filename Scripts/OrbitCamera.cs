@@ -70,9 +70,8 @@ public partial class OrbitCamera : MonoBehaviour {
         if (paused) {
             return;
         }
-        var sensitivity = mouseSensitivity?.GetValue() ?? 0.01f;
         // Always let player control
-        Vector2 mouseDelta = Mouse.current.delta.ReadValue() * sensitivity;
+        Vector2 mouseDelta = Mouse.current.delta.ReadValue();
         if (Gamepad.current != null) {
             Vector2 gamepadLook = Gamepad.current.rightStick.ReadValue();
             float deadzone = 0.15f;
@@ -82,8 +81,11 @@ public partial class OrbitCamera : MonoBehaviour {
         }
 
         if (controls != null) {
-            mouseDelta = controls.actions["Look"].ReadValue<Vector2>() * sensitivity + controls.actions["LookJoystick"].ReadValue<Vector2>();
+            mouseDelta = controls.actions["Look"].ReadValue<Vector2>() + controls.actions["LookJoystick"].ReadValue<Vector2>();
         }
+
+        var sensitivity = mouseSensitivity?.GetValue() ?? 0.01f;
+        mouseDelta *= sensitivity;
 
         if (tracking) {
             _aim += mouseDelta;
