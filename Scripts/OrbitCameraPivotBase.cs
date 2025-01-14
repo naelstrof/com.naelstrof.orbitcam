@@ -11,7 +11,7 @@ public abstract class OrbitCameraPivotBase : MonoBehaviour {
         obstacleMask = LayerMask.GetMask("World");
     }
     protected bool CastNearPlane(Camera cam, Quaternion camRotation, Vector2 screenOffset, Vector3 from, Vector3 to, out float distance) {
-        const float minDistance = 0.05f;
+        const float minDistance = 0.1f;
         var camTransform = cam.transform;
         var rot = camTransform.rotation;
         camTransform.rotation = camRotation;
