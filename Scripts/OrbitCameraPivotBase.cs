@@ -11,6 +11,7 @@ public abstract class OrbitCameraPivotBase : MonoBehaviour {
         obstacleMask = LayerMask.GetMask("World");
     }
     protected bool CastNearPlane(Camera cam, Quaternion camRotation, Vector2 screenOffset, Vector3 from, Vector3 to, out float distance) {
+        const float minDistance = 0.05f;
         var camTransform = cam.transform;
         var rot = camTransform.rotation;
         camTransform.rotation = camRotation;
@@ -36,7 +37,7 @@ public abstract class OrbitCameraPivotBase : MonoBehaviour {
                 insideProp = true;
                 break;
             }
-            distance = Mathf.Min(distance, raycastHits[i].distance);
+            distance = Mathf.Min(distance, Mathf.Max(raycastHits[i].distance-cam.nearClipPlane-minDistance, 0f));
         }
 
         // If we're inside something, then we panic and try to use a regular raycasts to figure out what to do.
@@ -44,13 +45,13 @@ public abstract class OrbitCameraPivotBase : MonoBehaviour {
             // Center-camera
             hitCount = Physics.RaycastNonAlloc(cameraStart, dir, raycastHits, distance, obstacleMask);
             for (int j = 0; j < hitCount; j++) {
-                distance = Mathf.Min(distance, raycastHits[j].distance);
+                distance = Mathf.Min(distance, Mathf.Max(raycastHits[j].distance-cam.nearClipPlane-minDistance, 0f));
             }
             // All four corners
             for (int i = 0; i < 4; i++) {
                 hitCount = Physics.RaycastNonAlloc(cameraStart + camRotation*frustumCorners[i], dir, raycastHits, distance, obstacleMask);
                 for (int j = 0; j < hitCount; j++) {
-                    distance = Mathf.Min(distance, raycastHits[j].distance);
+                    distance = Mathf.Min(distance, Mathf.Max(raycastHits[j].distance-cam.nearClipPlane-minDistance,0f));
                 }
             }
         }
