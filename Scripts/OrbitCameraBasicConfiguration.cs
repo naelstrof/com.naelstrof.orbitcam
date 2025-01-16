@@ -5,11 +5,11 @@ using UnityEngine;
 [System.Serializable]
 public class OrbitCameraBasicConfiguration : OrbitCameraConfiguration {
     [SerializeField]
-    private OrbitCameraPivotBase pivot;
+    protected OrbitCameraPivotBase pivot;
     [SerializeField]
-    private LayerMask cullingMask = ~0;
+    protected LayerMask cullingMask = ~0;
 
-    private OrbitCameraData? lastData;
+    protected OrbitCameraData? lastData;
     public override OrbitCameraData GetData(Camera cam) {
         if (pivot == null) {
             lastData ??= OrbitCamera.GetCurrentCameraData();
