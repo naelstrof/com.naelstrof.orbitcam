@@ -168,7 +168,7 @@ public partial class OrbitCamera : MonoBehaviour {
         }
 
         orbitCameraConfigurations.Remove(config);
-        if (instance == null) {
+        if (instance == null || orbitCameraConfigurations.Count == 0) {
             return;
         }
 
