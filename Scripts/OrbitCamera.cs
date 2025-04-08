@@ -23,7 +23,7 @@ public partial class OrbitCamera : MonoBehaviour {
         configurationChanged = null;
     }
     
-    private Vector2 _aim;
+    private static Vector2 _aim;
     private Camera cam;
     private PlayerInput controls;
     private static bool tracking = true;
@@ -110,15 +110,7 @@ public partial class OrbitCamera : MonoBehaviour {
         if (paused) {
             return;
         }
-        
-        Quaternion cameraRot = data.rotation;
-        
-        cam.fieldOfView = data.fov;
-        float distance = data.distance;
-        transform.rotation = cameraRot;
-        Ray screenRay = GetScreenRay(cam, data.screenPoint);
-        transform.position = data.position - screenRay.direction * distance;
-        
+        data.ApplyTo(cam);
         currentCameraData = data;
     }
 
@@ -195,7 +187,7 @@ public partial class OrbitCamera : MonoBehaviour {
                 if (!paused) {
                     timer += Time.deltaTime;
                     float t = timer / duration;
-                    cam.transform.rotation = Quaternion.Inverse(instance.postRotationOffset) * Quaternion.Euler(-instance._aim.y, instance._aim.x, 0f);
+                    cam.transform.rotation = Quaternion.Inverse(instance.postRotationOffset) * Quaternion.Euler(-_aim.y, _aim.x, 0f);
                     SetOrbit(OrbitCameraData.Lerp(from, next.GetData(cam), t));
                 }
                 yield return new WaitForEndOfFrame();
@@ -206,7 +198,8 @@ public partial class OrbitCamera : MonoBehaviour {
         }
     }
     
-    public static Vector2 GetPlayerIntendedScreenAim() => instance._aim;
+    public static Vector2 GetPlayerIntendedScreenAim() => _aim;
+    public static void SetPlayerIntendedScreenAim(Vector2 aim) => _aim = aim;
     private void LateUpdate() {
         if (tween != null || currentConfiguration == null || paused) {
             return;
@@ -218,7 +211,7 @@ public partial class OrbitCamera : MonoBehaviour {
     }
 
     public static Quaternion GetPlayerIntendedRotation() {
-        return Quaternion.Euler(-instance._aim.y, instance._aim.x, 0f);
+        return Quaternion.Euler(-_aim.y, _aim.x, 0f);
     }
 
     public static Vector3 GetPlayerIntendedPosition() {
@@ -228,7 +221,7 @@ public partial class OrbitCamera : MonoBehaviour {
     public static void SetPlayerIntendedFacingDirection(Vector3 dir) {
         Quaternion lookDir = QuaternionExtensions.LookRotationUpPriority(dir, Vector3.up);
         var euler = lookDir.eulerAngles;
-        instance._aim = new Vector2(-lookDir.y, lookDir.x);
+        _aim = new Vector2(-lookDir.y, lookDir.x);
     }
 
     public static void SetPlayerInput(PlayerInput input) {

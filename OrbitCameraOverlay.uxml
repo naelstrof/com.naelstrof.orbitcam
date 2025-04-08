@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1;">
+        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info" style="flex-grow: 0;" />
+        <ui:VisualElement style="flex-grow: 0; flex-direction: row; flex-shrink: 1;">
+            <ui:VisualElement name="image" style="flex-grow: 1; -unity-background-scale-mode: scale-to-fit; height: 256px;" />
+            <ui:Slider label="Pitch" high-value="90" name="pitch" low-value="-90" show-input-field="false" direction="Vertical" />
+        </ui:VisualElement>
+        <ui:Slider label="Yaw&#10;" high-value="180" name="yaw" low-value="-180" show-input-field="false" style="flex-grow: 0; flex-shrink: 0; align-items: stretch;" />
+    </ui:VisualElement>
+</ui:UXML>

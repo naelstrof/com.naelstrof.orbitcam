@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +7,7 @@ public abstract class OrbitCameraPivotBase : MonoBehaviour {
     private static Vector3[] frustumCorners = new Vector3[4];
     private static RaycastHit[] raycastHits = new RaycastHit[32];
     private static LayerMask obstacleMask;
+    
     public abstract OrbitCameraData GetData(Camera cam);
     protected virtual void Awake() {
         obstacleMask = LayerMask.GetMask("World");
@@ -60,5 +62,9 @@ public abstract class OrbitCameraPivotBase : MonoBehaviour {
         distance -= cam.nearClipPlane;
         cam.transform.rotation = rot;
         return true;
+    }
+
+    private void OnDrawGizmosSelected() {
+        OrbitCameraPreview.RenderPreview(this);
     }
 }

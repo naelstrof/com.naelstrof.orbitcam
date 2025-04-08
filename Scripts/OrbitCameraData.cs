@@ -8,6 +8,14 @@ public struct OrbitCameraData {
     public bool clampYaw;
     public bool clampPitch;
 
+    public void ApplyTo(Camera cam) {
+        Quaternion cameraRot = rotation;
+        cam.fieldOfView = fov;
+        cam.transform.rotation = cameraRot;
+        Ray screenRay = OrbitCamera.GetScreenRay(cam, screenPoint);
+        cam.transform.position = position - screenRay.direction * distance;
+    }
+
     public bool IsValid() {
         if (float.IsNaN(position.x) || float.IsNaN(position.y) || float.IsNaN(position.z)) {
             return false;
