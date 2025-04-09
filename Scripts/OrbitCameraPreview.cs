@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -13,6 +14,8 @@ public class OrbitCameraPreview : Overlay {
     private static VisualTreeAsset visualTree;
     private static VisualElement root;
     private static OrbitCameraPivotBase lastPivot;
+    
+    private static LayerMask layerMask = ~0;
 
     public override void OnWillBeDestroyed() {
         base.OnWillBeDestroyed();
@@ -59,7 +62,7 @@ public class OrbitCameraPreview : Overlay {
         }
         var camera = GetTempCamera();
         var data = pivot.GetData(camera);
-        data.ApplyTo(camera);
+        data.ApplyTo(camera, layerMask);
         
         RenderPipeline.StandardRequest request = new RenderPipeline.StandardRequest();
         if (RenderPipeline.SupportsRenderRequest(camera, request)) {
@@ -126,6 +129,14 @@ public class OrbitCameraPreview : Overlay {
         slider.SetValueWithoutNotify(trackballManipulator.mouseSensitivity);
         slider.RegisterValueChangedCallback((v) => {
             trackballManipulator.mouseSensitivity = v.newValue;
+        });
+        var maskField = new LayerMaskField("Collision Mask", ~0);
+        root.Add(maskField);
+        maskField.RegisterValueChangedCallback((v) => {
+            layerMask = v.newValue;
+            if (lastPivot != null) {
+                RenderPreview(lastPivot);
+            }
         });
         return root;
     }

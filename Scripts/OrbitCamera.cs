@@ -6,6 +6,8 @@ using UnityEngine.InputSystem;
 public class OrbitCamera : MonoBehaviour {
     [SerializeField, SerializeReference, SubclassSelector]
     private OrbitCameraConfiguration configuration;
+
+    [SerializeField] private LayerMask collisionMask;
     
     private Camera cam;
     private bool tracking = true;
@@ -49,7 +51,7 @@ public class OrbitCamera : MonoBehaviour {
     }
 
     private void SetOrbit(OrbitCameraData data) {
-        data.ApplyTo(cam);
+        data.ApplyTo(cam, collisionMask);
         currentCameraData = data;
     }
 

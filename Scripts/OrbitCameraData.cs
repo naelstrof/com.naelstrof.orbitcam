@@ -61,12 +61,17 @@ public struct OrbitCameraData {
         return true;
     }
 
-    public void ApplyTo(Camera cam) {
+    public void ApplyTo(Camera cam, LayerMask collisionMask) {
         Quaternion cameraRot = rotation;
         cam.fieldOfView = fov;
         cam.transform.rotation = cameraRot;
         Ray screenRay = OrbitCamera.GetScreenRay(cam, screenPoint);
-        cam.transform.position = position - screenRay.direction * distance;
+        if (CastNearPlane(cam, collisionMask, rotation, screenPoint, position, position - cam.transform.forward * distance, out float newDistance)) {
+            cam.transform.position = position - screenRay.direction * newDistance;
+        } else {
+            cam.transform.position = position - screenRay.direction * distance;
+        }
+
         cam.cullingMask = mask;
     }
 
