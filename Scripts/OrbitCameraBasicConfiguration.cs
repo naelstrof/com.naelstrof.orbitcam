@@ -6,25 +6,26 @@ using UnityEngine;
 public class OrbitCameraBasicConfiguration : OrbitCameraConfiguration {
     [SerializeField]
     protected OrbitCameraPivotBase pivot;
-    [SerializeField]
-    protected LayerMask cullingMask = ~0;
+
+    public OrbitCameraPivotBase Pivot {
+        get => pivot;
+        set => pivot = value;
+    }
 
     protected OrbitCameraData? lastData;
     public override OrbitCameraData GetData(Camera cam) {
         if (pivot == null) {
-            lastData ??= OrbitCamera.GetCurrentCameraData();
+            lastData ??= new OrbitCameraData() {
+                rotation = Quaternion.identity,
+                position = Vector3.zero,
+                fov = 65f,
+                screenPoint = Vector2.one*0.5f,
+                distance = 1f,
+                mask = ~0
+            };
             return lastData.Value;
         }
         lastData = pivot.GetData(cam);
         return lastData.Value;
     }
-
-    public void SetPivot(OrbitCameraPivotBase pivot) {
-        this.pivot = pivot;
-    }
-
-    public void SetCullingMask(LayerMask mask) {
-        cullingMask = mask;
-    }
-    public override LayerMask GetCullingMask() => cullingMask;
 }
