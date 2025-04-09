@@ -13,10 +13,7 @@ public class OrbitCameraPreview : Overlay {
     private static Camera tempCamera;
     private static VisualTreeAsset visualTree;
     private static VisualElement root;
-    private static OrbitCameraPivotBase lastPivot;
-    
-    private static LayerMask layerMask = ~0;
-
+    private static IOrbitCameraDataGenerator lastGenerator;
     public override void OnWillBeDestroyed() {
         base.OnWillBeDestroyed();
         if (tempCamera != null) {
@@ -56,14 +53,15 @@ public class OrbitCameraPreview : Overlay {
         }
         return visualTree;
     }
-    public static void RenderPreview(OrbitCameraPivotBase pivot) {
-        lastPivot = pivot;
+    
+    public static void RenderPreview(IOrbitCameraDataGenerator generator) {
+        lastGenerator = generator;
         if (root == null) {
             return;
         }
         var camera = GetTempCamera();
-        var data = pivot.GetData(camera);
-        data.ApplyTo(camera, layerMask);
+        var data = generator.GetData();
+        data.ApplyTo(camera);
         
         RenderPipeline.StandardRequest request = new RenderPipeline.StandardRequest();
         if (RenderPipeline.SupportsRenderRequest(camera, request)) {
@@ -130,19 +128,6 @@ public class OrbitCameraPreview : Overlay {
         slider.SetValueWithoutNotify(trackballManipulator.mouseSensitivity);
         slider.RegisterValueChangedCallback((v) => {
             trackballManipulator.mouseSensitivity = v.newValue;
-        });
-        var maskField = new LayerMaskField("Collision Mask", ~0);
-        var orbitCamera = GameObject.FindObjectOfType<OrbitCamera>();
-        if (orbitCamera != null) {
-            maskField.SetValueWithoutNotify(orbitCamera.GetCollisionMask());
-            layerMask = orbitCamera.GetCollisionMask();
-        }
-        root.Add(maskField);
-        maskField.RegisterValueChangedCallback((v) => {
-            layerMask = v.newValue;
-            if (lastPivot != null) {
-                RenderPreview(lastPivot);
-            }
         });
         return root;
     }

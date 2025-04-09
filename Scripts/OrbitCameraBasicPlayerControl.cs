@@ -1,14 +1,18 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class OrbitCameraInput : MonoBehaviour {
+[Serializable]
+public class OrbitCameraBasicPlayerControl : IOrbitCameraDataGenerator {
+    [SerializeField, SerializeReference, SubclassSelector]
+    private IOrbitCameraDataGenerator input;
+    
     private bool tracking = true;
     private bool clampYaw = false;
     private bool clampPitch = true;
-    public void Update() {
+
+    public OrbitCameraData GetData() {
+        var data = input.GetData();
         // Always let player control
         Vector2 mouseDelta = Mouse.current.delta.ReadValue();
         if (Gamepad.current != null) {
@@ -23,11 +27,12 @@ public class OrbitCameraInput : MonoBehaviour {
         mouseDelta *= 0.02f;
 
         if (tracking) {
-            var euler = transform.rotation.eulerAngles;
+            var euler = data.rotation.eulerAngles;
             euler += new Vector3(-mouseDelta.y, mouseDelta.x, 0f);
             euler = new Vector3(Mathf.Repeat(euler.x + 180f, 360f) - 180f, Mathf.Repeat(euler.y + 180f, 360f) - 180f, euler.z);
             euler = new Vector3(Mathf.Clamp(euler.x, -89f, 89f), euler.y, euler.z);
-            transform.rotation = Quaternion.Euler(euler);
+            data.rotation = Quaternion.Euler(euler);
         }
+        return data;
     }
 }

@@ -5,7 +5,8 @@ public struct OrbitCameraData {
     public float fov;
     public Vector2 screenPoint;
     public Quaternion rotation; 
-    public LayerMask mask;
+    public LayerMask cullingMask;
+    public LayerMask collisionMask;
     
     private static Vector3[] frustumCorners = new Vector3[4];
     private static RaycastHit[] raycastHits = new RaycastHit[32];
@@ -61,18 +62,28 @@ public struct OrbitCameraData {
         return true;
     }
 
-    public void ApplyTo(Camera cam, LayerMask collisionMask) {
+    public OrbitCameraData(Camera camera) {
+        position = camera.transform.position;
+        distance = 0f;
+        fov = camera.fieldOfView;
+        screenPoint = Vector2.one*0.5f;
+        rotation = camera.transform.rotation;
+        cullingMask = camera.cullingMask;
+        collisionMask = ~(0);
+    }
+
+    public void ApplyTo(Camera cam) {
         Quaternion cameraRot = rotation;
         cam.fieldOfView = fov;
         cam.transform.rotation = cameraRot;
         Ray screenRay = OrbitCamera.GetScreenRay(cam, screenPoint);
-        if (CastNearPlane(cam, collisionMask, rotation, screenPoint, position, position - cam.transform.forward * distance, out float newDistance)) {
+        if (collisionMask != 0 && CastNearPlane(cam, collisionMask, rotation, screenPoint, position, position - cam.transform.forward * distance, out float newDistance)) {
             cam.transform.position = position - screenRay.direction * newDistance;
         } else {
             cam.transform.position = position - screenRay.direction * distance;
         }
 
-        cam.cullingMask = mask;
+        cam.cullingMask = cullingMask;
     }
 
     public bool IsValid() {
@@ -112,7 +123,7 @@ public struct OrbitCameraData {
             fov = Mathf.Lerp(pivotA.fov, pivotB.fov, t),
             screenPoint = Vector2.Lerp(pivotA.screenPoint, pivotB.screenPoint, t),
             rotation = Quaternion.Lerp(pivotA.rotation, pivotB.rotation, t),
-            mask = t > 0.5f ? pivotB.mask : pivotA.mask
+            cullingMask = t > 0.5f ? pivotB.cullingMask : pivotA.cullingMask
         };
     }
 }
