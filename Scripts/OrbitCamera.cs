@@ -8,6 +8,7 @@ public class OrbitCamera : MonoBehaviour {
     private OrbitCameraConfiguration configuration;
 
     [SerializeField] private LayerMask collisionMask;
+    public LayerMask GetCollisionMask() => collisionMask;
     
     private Camera cam;
     private bool tracking = true;

@@ -37,6 +37,7 @@ public class OrbitCameraPreview : Overlay {
                 hideFlags = HideFlags.HideAndDontSave
             };
             tempCamera = cameraObj.GetComponent<Camera>();
+            tempCamera.nearClipPlane = 0.03f;
         }
 
         return tempCamera;
@@ -131,6 +132,11 @@ public class OrbitCameraPreview : Overlay {
             trackballManipulator.mouseSensitivity = v.newValue;
         });
         var maskField = new LayerMaskField("Collision Mask", ~0);
+        var orbitCamera = GameObject.FindObjectOfType<OrbitCamera>();
+        if (orbitCamera != null) {
+            maskField.SetValueWithoutNotify(orbitCamera.GetCollisionMask());
+            layerMask = orbitCamera.GetCollisionMask();
+        }
         root.Add(maskField);
         maskField.RegisterValueChangedCallback((v) => {
             layerMask = v.newValue;
