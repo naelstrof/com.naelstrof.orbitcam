@@ -40,9 +40,14 @@ public class OrbitCameraPivot : IOrbitCameraDataGenerator {
         set => fov = value;
     }
 
-    public LayerMask LayerMask {
+    public LayerMask CullingMask {
         get => cullingMask;
         set => cullingMask = value;
+    }
+    
+    public LayerMask CollisionMask {
+        get => collisionMask;
+        set => collisionMask = value;
     }
     
     public virtual OrbitCameraData GetData() {
