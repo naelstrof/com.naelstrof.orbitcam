@@ -5,6 +5,7 @@ using UnityEngine;
 public class OrbitCameraObstacleCollision : IOrbitCameraDataGenerator {
     [SerializeField, SerializeReference, SubclassSelector] protected IOrbitCameraDataGenerator input;
     [SerializeField] protected Camera camera;
+    [SerializeField] protected LayerMask collisionMask;
 
     public IOrbitCameraDataGenerator Input {
         get => input;
@@ -14,6 +15,11 @@ public class OrbitCameraObstacleCollision : IOrbitCameraDataGenerator {
     public Camera Camera {
         get => camera;
         set => camera = value;
+    }
+    
+    public LayerMask CollisionMask {
+        get => collisionMask;
+        set => collisionMask = value;
     }
 
     private static Vector3[] frustumCorners = new Vector3[4];
@@ -72,7 +78,7 @@ public class OrbitCameraObstacleCollision : IOrbitCameraDataGenerator {
 
     public OrbitCameraData GetData() {
         var data = input.GetData();
-        if (data.collisionMask != 0 && CastNearPlane(camera, data.collisionMask, data.rotation, data.screenPoint, data.position, data.position - camera.transform.forward * data.distance, out float newDistance)) {
+        if (collisionMask != 0 && CastNearPlane(camera, collisionMask, data.rotation, data.screenPoint, data.position, data.position - camera.transform.forward * data.distance, out float newDistance)) {
             data.distance = newDistance;
         }
         return data;

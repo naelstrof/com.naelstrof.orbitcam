@@ -13,7 +13,6 @@ public class OrbitCameraPivot : IOrbitCameraDataGenerator {
     [SerializeField] protected float desiredDistanceFromPivot = 1f;
     [SerializeField] protected float fov = 65f;
     [SerializeField] protected LayerMask cullingMask = ~0;
-    [SerializeField] protected LayerMask collisionMask = 0;
 
     public Transform PivotTransform {
         get => pivotTransform;
@@ -45,11 +44,6 @@ public class OrbitCameraPivot : IOrbitCameraDataGenerator {
         set => cullingMask = value;
     }
     
-    public LayerMask CollisionMask {
-        get => collisionMask;
-        set => collisionMask = value;
-    }
-    
     public virtual OrbitCameraData GetData() {
         var data = input.GetData();
         return new OrbitCameraData {
@@ -59,7 +53,6 @@ public class OrbitCameraPivot : IOrbitCameraDataGenerator {
             fov = fov,
             rotation = data.rotation,
             cullingMask = cullingMask,
-            collisionMask = collisionMask,
         };
     }
 }

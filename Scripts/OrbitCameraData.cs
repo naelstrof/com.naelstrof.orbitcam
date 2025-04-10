@@ -6,7 +6,6 @@ public struct OrbitCameraData {
     public Vector2 screenPoint;
     public Quaternion rotation; 
     public LayerMask cullingMask;
-    public LayerMask collisionMask;
     
     public OrbitCameraData(Camera camera) {
         position = camera.transform.position;
@@ -15,7 +14,6 @@ public struct OrbitCameraData {
         screenPoint = Vector2.one*0.5f;
         rotation = camera.transform.rotation;
         cullingMask = camera.cullingMask;
-        collisionMask = ~(0);
     }
 
     public void ApplyTo(Camera cam) {
@@ -64,7 +62,7 @@ public struct OrbitCameraData {
             fov = Mathf.Lerp(pivotA.fov, pivotB.fov, t),
             screenPoint = Vector2.Lerp(pivotA.screenPoint, pivotB.screenPoint, t),
             rotation = Quaternion.Lerp(pivotA.rotation, pivotB.rotation, t),
-            cullingMask = t > 0.5f ? pivotB.cullingMask : pivotA.cullingMask
+            cullingMask = t > 0f ? pivotB.cullingMask : pivotA.cullingMask,
         };
     }
 }
