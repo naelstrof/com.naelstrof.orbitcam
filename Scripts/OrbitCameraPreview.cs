@@ -55,13 +55,21 @@ public class OrbitCameraPreview : Overlay {
     }
     
     public static void RenderPreview(IOrbitCameraDataGenerator generator) {
+        if (generator == null) {
+            root.Q<Label>("info").text = "The OrbitCamera is incorrectly configured! Make sure GetConfiguration() gives a valid datablob (It's null).";
+        }
         lastGenerator = generator;
         if (root == null) {
             return;
         }
         var camera = GetTempCamera();
-        var data = generator.GetData();
-        data.ApplyTo(camera);
+        try {
+            var data = generator.GetData();
+            data.ApplyTo(camera);
+        } catch {
+            root.Q<Label>("info").text = "The OrbitCamera is incorrectly configured! Check the console for errors...";
+            throw;
+        }
         
         RenderPipeline.StandardRequest request = new RenderPipeline.StandardRequest();
         if (RenderPipeline.SupportsRenderRequest(camera, request)) {

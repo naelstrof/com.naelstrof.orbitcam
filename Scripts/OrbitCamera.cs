@@ -3,8 +3,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
 public class OrbitCamera : MonoBehaviour {
-    [SerializeField, SerializeReference, SubclassSelector]
-    private IOrbitCameraDataGenerator configuration;
+    protected IOrbitCameraDataGenerator configuration;
     
     private Camera cam;
     private bool tracking = true;
@@ -21,24 +20,27 @@ public class OrbitCamera : MonoBehaviour {
 
     public event OrbitCameraConfigurationChangedAction configurationChanged;
 
-    public IOrbitCameraDataGenerator GetConfiguration() => configuration;
+    public virtual IOrbitCameraDataGenerator GetConfiguration() => configuration;
     
     public void SetConfiguration(IOrbitCameraDataGenerator newConfig, float tweenDuration = 0.4f) {
-        if (configuration == newConfig) {
+        if (GetConfiguration() == newConfig) {
             return;
         }
 
         if (tweenDuration == 0f) {
-            configurationChanged?.Invoke(configuration, newConfig);
+            configurationChanged?.Invoke(GetConfiguration(), newConfig);
             configuration = newConfig;
             return;
         }
         BeginTween(GetCurrentCameraData(), newConfig, tweenDuration);
     }
 
-    private void Awake() {
+    protected virtual void Awake() {
         cam = GetComponent<Camera>();
-        SetOrbit(configuration?.GetData() ?? new OrbitCameraData());
+        var config = GetConfiguration();
+        if (config != null) {
+            SetOrbit(config.GetData());
+        }
     }
 
     public static Ray GetScreenRay(Camera cam, Vector2 screenPoint) {
@@ -47,7 +49,7 @@ public class OrbitCamera : MonoBehaviour {
         return cam.ScreenPointToRay(desiredScreenPosition);
     }
 
-    private void SetOrbit(OrbitCameraData data) {
+    protected void SetOrbit(OrbitCameraData data) {
         data.ApplyTo(cam);
         currentCameraData = data;
     }
@@ -57,7 +59,7 @@ public class OrbitCamera : MonoBehaviour {
             StopCoroutine(tween);
             tween = null;
         }
-        configurationChanged?.Invoke(configuration, next);
+        configurationChanged?.Invoke(GetConfiguration(), next);
         configuration = next;
         tween = StartCoroutine(TweenTo(from, next, duration));
     }
@@ -78,18 +80,16 @@ public class OrbitCamera : MonoBehaviour {
         }
     }
     
-    private void LateUpdate() {
-        if (tween != null || configuration == null) {
+    protected virtual void LateUpdate() {
+        if (tween != null || GetConfiguration() == null) {
             return;
         }
-        SetOrbit(configuration.GetData());
+        SetOrbit(GetConfiguration().GetData());
     }
     
     public OrbitCameraData GetCurrentCameraData() => currentCameraData;
 
-    private void OnDrawGizmosSelected() {
-        if (configuration != null) {
-            OrbitCameraPreview.RenderPreview(configuration);
-        }
+    protected virtual void OnDrawGizmosSelected() {
+        OrbitCameraPreview.RenderPreview(GetConfiguration());
     }
 }
