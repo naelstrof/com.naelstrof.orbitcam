@@ -28,7 +28,7 @@ public class OrbitCameraPreview : Overlay {
         root = null;
     }
 
-    private static Camera GetTempCamera() {
+    public static Camera GetPreviewCamera() {
         if (tempCamera == null) {
             var cameraObj = new GameObject("OrbitCameraPreview", typeof(Camera)) {
                 hideFlags = HideFlags.HideAndDontSave
@@ -62,7 +62,7 @@ public class OrbitCameraPreview : Overlay {
         if (root == null) {
             return;
         }
-        var camera = GetTempCamera();
+        var camera = GetPreviewCamera();
         try {
             var data = generator.GetData();
             data.ApplyTo(camera);
@@ -113,6 +113,7 @@ public class OrbitCameraPreview : Overlay {
 
         private void OnMouseDown(MouseDownEvent evt) {
             dragging = true;
+            editorInputDelta = Vector2.zero;
         }
 
         protected override void UnregisterCallbacksFromTarget() {
