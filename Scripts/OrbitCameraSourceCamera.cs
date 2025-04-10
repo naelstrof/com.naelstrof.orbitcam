@@ -5,7 +5,13 @@ using UnityEngine;
 [System.Serializable]
 public class OrbitCameraSourceCamera : IOrbitCameraDataGenerator {
     [SerializeField]
-    private Camera camera;
+    protected Camera camera;
+
+    public Camera Camera {
+        get => camera;
+        set => camera = value;
+    }
+
     public OrbitCameraData GetData() {
         return new OrbitCameraData(camera);
     }
