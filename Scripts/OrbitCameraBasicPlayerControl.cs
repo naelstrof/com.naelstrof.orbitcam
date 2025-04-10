@@ -5,11 +5,31 @@ using UnityEngine.InputSystem;
 [Serializable]
 public class OrbitCameraBasicPlayerControl : IOrbitCameraDataGenerator {
     [SerializeField, SerializeReference, SubclassSelector]
-    private IOrbitCameraDataGenerator input;
-    
-    private bool tracking = true;
-    private bool clampYaw = false;
-    private bool clampPitch = true;
+    protected IOrbitCameraDataGenerator input;
+    protected bool tracking = true;
+    protected bool clampYaw = false;
+
+    public bool Tracking {
+        get => tracking;
+        set => tracking = value;
+    }
+
+    public bool ClampYaw {
+        get => clampYaw;
+        set => clampYaw = value;
+    }
+
+    public bool ClampPitch {
+        get => clampPitch;
+        set => clampPitch = value;
+    }
+
+    protected bool clampPitch = true;
+
+    public IOrbitCameraDataGenerator Input {
+        get => input;
+        set => input = value;
+    }
 
     public OrbitCameraData GetData() {
         var data = input.GetData();
