@@ -65,4 +65,8 @@ public struct OrbitCameraData {
             cullingMask = t > 0f ? pivotB.cullingMask : pivotA.cullingMask,
         };
     }
+
+    public override string ToString() {
+        return $"CameraData:{{position:{position}, rotation:{rotation.eulerAngles}, distance:{distance}, fov:{fov}, screenPoint:{screenPoint}, cullingMask:{cullingMask}}}";
+    }
 }

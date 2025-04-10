@@ -1,33 +1,22 @@
-using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
 #if UNITY_EDITOR
-using System.Net;
-using UnityEditor.Overlays;
+using UnityEditor;
+using UnityEditor.EditorTools;
 
-[Overlay(typeof(SceneView), "Orbit Camera Preview", false)]
-public class OrbitCameraPreview : Overlay {
+[EditorTool("Orbit Camera Preview Tool", typeof(IOrbitCameraDataGenerator))]
+public class OrbitCameraPreview : EditorTool {
     private static RenderTexture renderTexture;
     private static Camera tempCamera;
-    private static VisualTreeAsset visualTree;
-    private static VisualElement root;
-    private static IOrbitCameraDataGenerator lastGenerator;
-    public override void OnWillBeDestroyed() {
-        base.OnWillBeDestroyed();
-        if (tempCamera != null) {
-            Object.DestroyImmediate(tempCamera.gameObject, true);
-        }
-        if (renderTexture != null) {
-            Object.DestroyImmediate(renderTexture);
-        }
-        renderTexture = null;
-        tempCamera = null;
-        visualTree = null;
-        root = null;
-    }
+    private static OrbitCameraData lastData;
 
+    private static OrbitCameraPreviewStatus status;
+
+    enum OrbitCameraPreviewStatus {
+        Okay,
+        NotSupportedSRP,
+    }
+    
     public static Camera GetPreviewCamera() {
         if (tempCamera == null) {
             var cameraObj = new GameObject("OrbitCameraPreview", typeof(Camera)) {
@@ -39,107 +28,71 @@ public class OrbitCameraPreview : Overlay {
 
         return tempCamera;
     }
+    
     private static RenderTexture GetRenderTexture() {
         if (renderTexture == null) {
             renderTexture = new RenderTexture(256, 256, 32, RenderTextureFormat.ARGB32);
         }
         return renderTexture;
     }
-
-    private VisualTreeAsset GetVisualTreeAsset() {
-        if (visualTree == null) {
-            var visualTreePath = AssetDatabase.GUIDToAssetPath("2a11c5c36a921194599e1cae66f5f2c6");
-            visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(visualTreePath);
-        }
-        return visualTree;
-    }
     
-    public static void RenderPreview(IOrbitCameraDataGenerator generator) {
-        if (generator == null) {
-            root.Q<Label>("info").text = "The OrbitCamera is incorrectly configured! Make sure GetConfiguration() gives a valid datablob (It's null).";
-        }
-        lastGenerator = generator;
-        if (root == null) {
-            return;
-        }
+    private static RenderTexture RenderPreview(OrbitCameraData data) {
+        lastData = data;
         var camera = GetPreviewCamera();
-        try {
-            var data = generator.GetData();
-            data.ApplyTo(camera);
-        } catch {
-            root.Q<Label>("info").text = "The OrbitCamera is incorrectly configured! Check the console for errors...";
-            throw;
-        }
+        lastData.ApplyTo(camera);
+        RenderTexture temp = GetRenderTexture();
         
         RenderPipeline.StandardRequest request = new RenderPipeline.StandardRequest();
         if (RenderPipeline.SupportsRenderRequest(camera, request)) {
-            request.destination = GetRenderTexture();
+            request.destination = temp;
             RenderPipeline.SubmitRenderRequest(camera, request);
-            root.Q<Label>("info").text = "Click and drag within the image to simulate player look.";
-            root.Q<VisualElement>("image").style.backgroundImage = Background.FromRenderTexture(GetRenderTexture());
+            status = OrbitCameraPreviewStatus.Okay;
         } else {
-            root.Q<Label>("info").text = "This render pipeline doesn't support render requests... Sorry.";
+            status = OrbitCameraPreviewStatus.NotSupportedSRP;
         }
+        return temp;
     }
     
-    public static Vector2 editorInputDelta;
-    public static Vector2 ConsumeEditorInputDelta() {
-        var accumulatedDelta = editorInputDelta;
-        editorInputDelta = Vector2.zero;
-        return accumulatedDelta;
+    private void OnEnable() {
+    }
+    private void OnDisable() {
+        if (tempCamera != null) {
+            DestroyImmediate(tempCamera.gameObject, true);
+        }
+        if (renderTexture != null) {
+            DestroyImmediate(renderTexture);
+        }
+        renderTexture = null;
+        tempCamera = null;
     }
 
-    private class TrackballManipulator : MouseManipulator {
-        private bool dragging = false;
-        public float mouseSensitivity = 0.1f;
-        protected override void RegisterCallbacksOnTarget() {
-            target.RegisterCallback<MouseDownEvent>(OnMouseDown);
-            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
-            target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
+    public override void OnToolGUI(EditorWindow window) {
+        if (!(window is SceneView sceneView)) {
+            return;
+        }
+        if (target is not IOrbitCameraDataGenerator generator) {
+            return;
         }
 
-        private void OnMouseMove(MouseMoveEvent evt) {
-            if (!dragging) {
-                return;
-            }
-            var mouseDelta = evt.mouseDelta;
-            mouseDelta *= mouseSensitivity;
-            editorInputDelta += mouseDelta;
-        }
+        lastData = generator.GetData();
 
-        private void OnMouseUp(MouseUpEvent evt) {
-            dragging = false;
+        if (Event.current.type is not EventType.Repaint) {
+            return;
         }
-
-        private void OnMouseDown(MouseDownEvent evt) {
-            dragging = true;
-            editorInputDelta = Vector2.zero;
-        }
-
-        protected override void UnregisterCallbacksFromTarget() {
-            target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
-            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
-            target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
-        }
+        
+        var rt = RenderPreview(lastData);
+        Handles.BeginGUI();
+        EditorGUI.DrawPreviewTexture(new Rect(0, 0, 256, 256), rt);
+        Handles.EndGUI();
+        sceneView.Repaint();
     }
-
-
-    public override VisualElement CreatePanelContent() {
-        root = new VisualElement();
-        GetVisualTreeAsset().CloneTree(root);
-        root.Q<Label>("info").text = "Select a pivot to preview.";
-        var image = root.Q<VisualElement>("image");
-        image.style.backgroundImage = Background.FromRenderTexture(GetRenderTexture());
-        
-        var trackballManipulator = new TrackballManipulator();
-        image.AddManipulator(trackballManipulator);
-        
-        var slider = root.Q<Slider>("mouseSensitivity");
-        slider.SetValueWithoutNotify(trackballManipulator.mouseSensitivity);
-        slider.RegisterValueChangedCallback((v) => {
-            trackballManipulator.mouseSensitivity = v.newValue;
-        });
-        return root;
+    
+    public override void OnActivated() {
+        SceneView.lastActiveSceneView.ShowNotification(new GUIContent("Entering Orbit Camera Tool"), .1f);
+    }
+    
+    public override void OnWillBeDeactivated() {
+        SceneView.lastActiveSceneView.ShowNotification(new GUIContent("Exiting Orbit Camera Tool"), .1f);
     }
 }
 

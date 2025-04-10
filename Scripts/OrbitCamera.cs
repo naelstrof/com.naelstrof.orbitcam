@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
-public class OrbitCamera : MonoBehaviour {
+public class OrbitCamera : MonoBehaviour, IOrbitCameraDataGenerator {
     protected IOrbitCameraDataGenerator configuration;
     
     private Camera cam;
@@ -89,7 +89,7 @@ public class OrbitCamera : MonoBehaviour {
     
     public OrbitCameraData GetCurrentCameraData() => currentCameraData;
 
-    protected virtual void OnDrawGizmosSelected() {
-        OrbitCameraPreview.RenderPreview(GetConfiguration());
+    public OrbitCameraData GetData() {
+        return GetConfiguration().GetData();
     }
 }
