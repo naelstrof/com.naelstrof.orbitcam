@@ -81,6 +81,13 @@ public class OrbitCameraPreview : Overlay {
             root.Q<Label>("info").text = "This render pipeline doesn't support render requests... Sorry.";
         }
     }
+    
+    public static Vector2 editorInputDelta;
+    public static Vector2 ConsumeEditorInputDelta() {
+        var accumulatedDelta = editorInputDelta;
+        editorInputDelta = Vector2.zero;
+        return accumulatedDelta;
+    }
 
     private class TrackballManipulator : MouseManipulator {
         private bool dragging = false;
@@ -95,16 +102,9 @@ public class OrbitCameraPreview : Overlay {
             if (!dragging) {
                 return;
             }
-            var camera = GetTempCamera();
             var mouseDelta = evt.mouseDelta;
-            //var sensitivity = mouseSensitivity?.GetValue() ?? 0.01f;
             mouseDelta *= mouseSensitivity;
-
-            var euler = camera.transform.rotation.eulerAngles;
-            euler += new Vector3(-mouseDelta.y, mouseDelta.x, 0f);
-            euler = new Vector3(Mathf.Repeat(euler.x + 180f, 360f) - 180f, Mathf.Repeat(euler.y + 180f, 360f) - 180f, euler.z);
-            euler = new Vector3(Mathf.Clamp(euler.x, -89f, 89f), euler.y, euler.z);
-            camera.transform.rotation = Quaternion.Euler(euler);
+            editorInputDelta += mouseDelta;
         }
 
         private void OnMouseUp(MouseUpEvent evt) {
@@ -121,6 +121,7 @@ public class OrbitCameraPreview : Overlay {
             target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
         }
     }
+
 
     public override VisualElement CreatePanelContent() {
         root = new VisualElement();
