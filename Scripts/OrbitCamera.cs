@@ -72,20 +72,26 @@ public class OrbitCamera : MonoBehaviour {
     }
 
     public void SetFloat(string parameterName, float value) {
-        foreach(var node in GetConfiguration().nodes.Where((a)=>a is OrbitCameraFloat f && f.parameterName == parameterName)) {
-            ((OrbitCameraFloat)node).value = value;
+        foreach (var node in GetConfiguration().nodes) {
+            if (node is OrbitCameraFloat f && f.parameterName == parameterName) {
+                f.value = value;
+            }
         }
     }
     
     public void SetVector3(string parameterName, Vector3 value) {
-        foreach(var node in GetConfiguration().nodes.Where((a)=>a is OrbitCameraVector3 f && f.parameterName == parameterName)) {
-            ((OrbitCameraVector3)node).value = value;
+        foreach (var node in GetConfiguration().nodes) {
+            if (node is OrbitCameraVector3 f && f.parameterName == parameterName) {
+                f.value = value;
+            }
         }
     }
     
     public void SetRotation(string parameterName, Quaternion value) {
-        foreach(var node in GetConfiguration().nodes.Where((a)=>a is OrbitCameraRotation f && f.parameterName == parameterName)) {
-            ((OrbitCameraRotation)node).value = value;
+        foreach (var node in GetConfiguration().nodes) {
+            if (node is OrbitCameraRotation f && f.parameterName == parameterName) {
+                f.value = value;
+            }
         }
     }
 
