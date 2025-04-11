@@ -1,4 +1,5 @@
 using UnityEngine;
+[System.Serializable]
 public struct OrbitCameraData {
     public Vector3 position;
     public float distance;

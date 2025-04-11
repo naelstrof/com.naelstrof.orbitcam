@@ -1,28 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using GraphProcessor;
 using UnityEngine;
 
-[System.Serializable]
-public class OrbitCameraLimitRotation : IOrbitCameraDataGenerator {
-    [SerializeField, SerializeReference, SubclassSelector] protected IOrbitCameraDataGenerator input;
-    [SerializeField] protected float angleFreedom = 30f;
-    [SerializeField] protected Quaternion targetRotation;
-    
-    public IOrbitCameraDataGenerator Input {
-        get => input;
-        set => input = value;
-    }
+[System.Serializable, NodeMenuItem("OrbitCamera/Limit Rotation")]
+public class OrbitCameraLimitRotation : OrbitCameraControllerNode {
+    [Input("Input")]
+    public OrbitCameraData input;
+    [SerializeField, Input("Angle Freedom")]
+    public float angleFreedom = 30f;
+    [SerializeField, Input("Target Rotation")]
+    public Quaternion targetRotation;
 
-    public float AngleFreedom {
-        get => angleFreedom;
-        set => angleFreedom = value;
-    }
-
-    public Quaternion TargetRotation {
-        get => targetRotation;
-        set => targetRotation = value;
-    }
-
+    [Output("Output")]
+    public OrbitCameraData output;
     private Quaternion GetRotation(Quaternion camRotation) {
         var rotation = targetRotation;
         float angle = Quaternion.Angle(camRotation, rotation);
@@ -32,9 +23,9 @@ public class OrbitCameraLimitRotation : IOrbitCameraDataGenerator {
         return camRotation;
     }
 
-    public OrbitCameraData GetData() {
-        var orbitCameraData = input.GetData();
+    protected override void Process() {
+        var orbitCameraData = input;
         orbitCameraData.rotation = GetRotation(orbitCameraData.rotation);
-        return orbitCameraData;
+        output = orbitCameraData;
     }
 }

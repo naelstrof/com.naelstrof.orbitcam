@@ -1,29 +1,21 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using GraphProcessor;
 using UnityEngine;
 
-public class OrbitCameraObstacleCollision : IOrbitCameraDataGenerator {
-    [SerializeField, SerializeReference, SubclassSelector] protected IOrbitCameraDataGenerator input;
-    [SerializeField] protected Camera camera;
-    [SerializeField] protected LayerMask collisionMask;
-
-    public IOrbitCameraDataGenerator Input {
-        get => input;
-        set => input = value;
-    }
-
-    public Camera Camera {
-        get => camera;
-        set => camera = value;
-    }
+[Serializable, NodeMenuItem("OrbitCamera/Collision")]
+public class OrbitCameraObstacleCollision : OrbitCameraControllerNode {
+    [Input("Input")]
+    public OrbitCameraData input;
+    [Output("Output")]
+    public OrbitCameraData output;
     
-    public LayerMask CollisionMask {
-        get => collisionMask;
-        set => collisionMask = value;
-    }
+    [SerializeField] public LayerMask collisionMask;
+    [SerializeField] public float bufferDistance;
 
-    private static Vector3[] frustumCorners = new Vector3[4];
     private static RaycastHit[] raycastHits = new RaycastHit[32];
+    /*private static Vector3[] frustumCorners = new Vector3[4];
     private static bool CastNearPlane(Camera cam, LayerMask hitMask, Quaternion camRotation, Vector2 screenOffset, Vector3 from, Vector3 to, out float distance) {
         const float minDistance = 0.1f;
         var camTransform = cam.transform;
@@ -74,13 +66,22 @@ public class OrbitCameraObstacleCollision : IOrbitCameraDataGenerator {
         distance -= Mathf.Min(cam.nearClipPlane,0.1f);
         cam.transform.rotation = rot;
         return true;
+    }*/
+
+    private float CastRay(LayerMask collisionMask, OrbitCameraData data) {
+        int hitCount = Physics.RaycastNonAlloc(data.position, data.rotation*Vector3.back, raycastHits, data.distance, collisionMask);
+        var distance = data.distance;
+        for (int j = 0; j < hitCount; j++) {
+            distance = Mathf.Min(distance, Mathf.Max(raycastHits[j].distance-bufferDistance, 0f));
+        }
+        return distance;
     }
 
-    public OrbitCameraData GetData() {
-        var data = input.GetData();
-        if (collisionMask != 0 && CastNearPlane(camera, collisionMask, data.rotation, data.screenPoint, data.position, data.position - camera.transform.forward * data.distance, out float newDistance)) {
-            data.distance = newDistance;
+    protected override void Process() {
+        var data = input;
+        if (collisionMask != 0) {
+            data.distance = CastRay(collisionMask, data);
         }
-        return data;
+        output = data;
     }
 }

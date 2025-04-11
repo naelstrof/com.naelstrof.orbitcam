@@ -1,10 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
+using GraphProcessor;
 using UnityEngine;
 using UnityEngine.UIElements.Experimental;
 
-[System.Serializable]
-public class OrbitCameraShake : IOrbitCameraDataGenerator {
+[System.Serializable, NodeMenuItem("OrbitCamera/Shake")]
+public class OrbitCameraShake : OrbitCameraControllerNode {
     public const float SLAM_SHAKE_DURATION = 0.5f;
     public const float SLAM_SHAKE_AMP = 1f;
     
@@ -14,12 +14,9 @@ public class OrbitCameraShake : IOrbitCameraDataGenerator {
     public const float FLOOR_QUAKE_SHAKE_DURATION = 0.8f;
     public const float FLOOR_QUAKE_SHAKE_AMP = 0.8f;
     
-    [SerializeField, SerializeReference, SubclassSelector] private IOrbitCameraDataGenerator input;
-
-    public IOrbitCameraDataGenerator Input {
-        get => input;
-        set => input = value;
-    }
+    [Input("Input")] public OrbitCameraData input;
+    
+    [Output("Output")] public OrbitCameraData output;
 
     private struct ShakeInstance {
         public int id;
@@ -70,14 +67,13 @@ public class OrbitCameraShake : IOrbitCameraDataGenerator {
         shakeInstances?.Clear();
         currentId = 0;
     }
-    
-    public OrbitCameraData GetData() {
-        var data = input.GetData();
-        GetShake(data, out Vector3 position, out var rotation, out var fovChange);
-        data.position += position;
+
+    protected override void Process() {
+        GetShake(input, out Vector3 position, out var rotation, out var fovChange);
+        input.position += position;
         //data.rotation *= rotation;
         //data.fov += fovChange;
-        return data;
+        output = input;
     }
 
     public static void ApplyShake(float amplitude, float duration) {

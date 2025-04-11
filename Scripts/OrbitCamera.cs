@@ -1,10 +1,49 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Transform = UnityEngine.Transform;
+#if UNITY_EDITOR
+using UnityEditor;
+
+[CustomEditor(typeof(OrbitCamera))]
+public class OrbitCameraEditor : Editor {
+    public override void OnInspectorGUI() {
+        base.OnInspectorGUI();
+        var orbitCamera = (OrbitCamera)target;
+        var config = orbitCamera.GetConfiguration();
+        if (config == null) return;
+        EditorGUILayout.Separator();
+        EditorGUILayout.LabelField("Auto-detected parameters:");
+        Undo.RecordObject(this, "Orbit Camera");
+        foreach (var node in config.nodes.Where((a) => a is OrbitCameraControllerInput)) {
+            if (node is OrbitCameraFloat f) {
+                f.value = EditorGUILayout.FloatField(f.parameterName, f.value);
+            }
+            if (node is OrbitCameraVector3 p) {
+                p.value = EditorGUILayout.Vector3Field(p.parameterName, p.value);
+            }
+            if (node is OrbitCameraRotation r) {
+                EditorGUI.BeginChangeCheck();
+                var value = EditorGUILayout.Vector3Field(r.parameterName, r.value.eulerAngles);
+                if (EditorGUI.EndChangeCheck()) {
+                    r.value = Quaternion.Euler(value);
+                }
+            }
+        }
+        serializedObject.ApplyModifiedProperties();
+    }
+}
+#endif
+
+
 
 [RequireComponent(typeof(Camera))]
-public class OrbitCamera : MonoBehaviour, IOrbitCameraDataGenerator {
-    protected IOrbitCameraDataGenerator configuration;
-    
+public class OrbitCamera : MonoBehaviour {
+    [SerializeField]
+    protected OrbitCameraController configuration;
+
     private Camera cam;
     private bool tracking = true;
     private OrbitCameraData currentCameraData = new() {
@@ -15,24 +54,13 @@ public class OrbitCamera : MonoBehaviour, IOrbitCameraDataGenerator {
         distance = 1f,
         cullingMask = ~0
     };
-    private Coroutine tween;
-    public delegate void OrbitCameraConfigurationChangedAction(IOrbitCameraDataGenerator previousConfiguration, IOrbitCameraDataGenerator newConfiguration);
-
-    public event OrbitCameraConfigurationChangedAction configurationChanged;
-
-    public virtual IOrbitCameraDataGenerator GetConfiguration() => configuration;
+    public virtual OrbitCameraController GetConfiguration() => configuration;
     
-    public void SetConfiguration(IOrbitCameraDataGenerator newConfig, float tweenDuration = 0.4f) {
+    public void SetConfiguration(OrbitCameraController newConfig, float tweenDuration = 0.4f) {
         if (GetConfiguration() == newConfig) {
             return;
         }
-
-        if (tweenDuration == 0f) {
-            configurationChanged?.Invoke(GetConfiguration(), newConfig);
-            configuration = newConfig;
-            return;
-        }
-        BeginTween(GetCurrentCameraData(), newConfig, tweenDuration);
+        configuration = newConfig;
     }
 
     protected virtual void Awake() {
@@ -40,6 +68,24 @@ public class OrbitCamera : MonoBehaviour, IOrbitCameraDataGenerator {
         var config = GetConfiguration();
         if (config != null) {
             SetOrbit(config.GetData());
+        }
+    }
+
+    public void SetFloat(string parameterName, float value) {
+        foreach(var node in GetConfiguration().nodes.Where((a)=>a is OrbitCameraFloat f && f.parameterName == parameterName)) {
+            ((OrbitCameraFloat)node).value = value;
+        }
+    }
+    
+    public void SetVector3(string parameterName, Vector3 value) {
+        foreach(var node in GetConfiguration().nodes.Where((a)=>a is OrbitCameraVector3 f && f.parameterName == parameterName)) {
+            ((OrbitCameraVector3)node).value = value;
+        }
+    }
+    
+    public void SetRotation(string parameterName, Quaternion value) {
+        foreach(var node in GetConfiguration().nodes.Where((a)=>a is OrbitCameraRotation f && f.parameterName == parameterName)) {
+            ((OrbitCameraRotation)node).value = value;
         }
     }
 
@@ -53,42 +99,17 @@ public class OrbitCamera : MonoBehaviour, IOrbitCameraDataGenerator {
         data.ApplyTo(cam);
         currentCameraData = data;
     }
-
-    private void BeginTween(OrbitCameraData from, IOrbitCameraDataGenerator next, float duration) {
-        if (tween != null) {
-            StopCoroutine(tween);
-            tween = null;
-        }
-        configurationChanged?.Invoke(GetConfiguration(), next);
-        configuration = next;
-        tween = StartCoroutine(TweenTo(from, next, duration));
-    }
-
-    IEnumerator TweenTo(OrbitCameraData from, IOrbitCameraDataGenerator next, float duration) {
-        yield return new WaitForEndOfFrame();
-        try {
-            float timer = 0f;
-            while (timer < duration) {
-                timer += Time.deltaTime;
-                float t = timer / duration;
-                SetOrbit(OrbitCameraData.Lerp(from, next.GetData(), t));
-                yield return new WaitForEndOfFrame();
-            }
-            SetOrbit(next.GetData());
-        } finally {
-            tween = null;
-        }
-    }
-    
     protected virtual void LateUpdate() {
-        if (tween != null || GetConfiguration() == null) {
-            return;
-        }
-        SetOrbit(GetConfiguration().GetData());
+        var config = GetConfiguration();
+        config.Process();
+        SetOrbit(config.GetData());
     }
     
     public OrbitCameraData GetCurrentCameraData() => currentCameraData;
 
+    public void Process() {
+        configuration.Process();
+    }
     public OrbitCameraData GetData() {
         return GetConfiguration().GetData();
     }

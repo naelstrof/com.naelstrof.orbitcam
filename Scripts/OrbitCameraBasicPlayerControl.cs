@@ -1,38 +1,22 @@
 using System;
+using GraphProcessor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [Serializable]
-public class OrbitCameraBasicPlayerControl : IOrbitCameraDataGenerator {
-    [SerializeField, SerializeReference, SubclassSelector]
-    protected IOrbitCameraDataGenerator input;
-    protected bool tracking = true;
-    protected bool clampYaw = false;
-
-    public bool Tracking {
-        get => tracking;
-        set => tracking = value;
-    }
-
-    public bool ClampYaw {
-        get => clampYaw;
-        set => clampYaw = value;
-    }
-
-    public bool ClampPitch {
-        get => clampPitch;
-        set => clampPitch = value;
-    }
-
+public class OrbitCameraBasicPlayerControl : OrbitCameraControllerNode {
+    [Input("Input")]
+    public OrbitCameraData input;
+    
+    [SerializeField]
     protected bool clampPitch = true;
+    
+    [Output("Output")]
+    public OrbitCameraData output;
 
-    public IOrbitCameraDataGenerator Input {
-        get => input;
-        set => input = value;
-    }
 
-    public OrbitCameraData GetData() {
-        var data = input.GetData();
+    protected override void Process() {
+        var data = input;
         // Always let player control
         Vector2 mouseDelta = Mouse.current.delta.ReadValue();
         if (Gamepad.current != null) {
@@ -46,13 +30,14 @@ public class OrbitCameraBasicPlayerControl : IOrbitCameraDataGenerator {
         //var sensitivity = mouseSensitivity?.GetValue() ?? 0.01f;
         mouseDelta *= 0.02f;
 
-        if (tracking) {
-            var euler = data.rotation.eulerAngles;
-            euler += new Vector3(-mouseDelta.y, mouseDelta.x, 0f);
-            euler = new Vector3(Mathf.Repeat(euler.x + 180f, 360f) - 180f, Mathf.Repeat(euler.y + 180f, 360f) - 180f, euler.z);
+        var euler = data.rotation.eulerAngles;
+        euler += new Vector3(-mouseDelta.y, mouseDelta.x, 0f);
+        euler = new Vector3(Mathf.Repeat(euler.x + 180f, 360f) - 180f, Mathf.Repeat(euler.y + 180f, 360f) - 180f, euler.z);
+        if (clampPitch) {
             euler = new Vector3(Mathf.Clamp(euler.x, -89f, 89f), euler.y, euler.z);
-            data.rotation = Quaternion.Euler(euler);
         }
-        return data;
+
+        data.rotation = Quaternion.Euler(euler);
+        output = data;
     }
 }

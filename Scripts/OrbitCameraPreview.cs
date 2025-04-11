@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.EditorTools;
 
-[EditorTool("Orbit Camera Preview Tool", typeof(IOrbitCameraDataGenerator))]
+[EditorTool("Orbit Camera Preview Tool", typeof(OrbitCamera))]
 public class OrbitCameraPreview : EditorTool {
     private static RenderTexture renderTexture;
     private static Camera tempCamera;
@@ -70,11 +70,12 @@ public class OrbitCameraPreview : EditorTool {
         if (!(window is SceneView sceneView)) {
             return;
         }
-        if (target is not IOrbitCameraDataGenerator generator) {
+        if (target is not OrbitCamera camera) {
             return;
         }
-
-        lastData = generator.GetData();
+        
+        camera.Process();
+        lastData = camera.GetData();
 
         if (Event.current.type is not EventType.Repaint) {
             return;
