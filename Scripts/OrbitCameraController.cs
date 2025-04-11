@@ -30,8 +30,14 @@ public class OrbitCameraController : BaseGraph {
     }
     
     public OrbitCameraData GetData() {
-        var node = graphOutputs.FirstOrDefault() as OrbitCameraOutput;
-        return node?.output ?? new OrbitCameraData() {
+        foreach (var node in graphOutputs) {
+            if (node is not OrbitCameraOutput output) {
+                continue;
+            }
+            return output.output;
+        }
+
+        return new OrbitCameraData() {
             rotation = Quaternion.identity,
         };
     }
