@@ -23,7 +23,16 @@ public class OrbitCameraPreview : EditorTool {
                 hideFlags = HideFlags.HideAndDontSave
             };
             tempCamera = cameraObj.GetComponent<Camera>();
-            tempCamera.nearClipPlane = 0.03f;
+            if (Selection.activeObject != null && Selection.activeObject is GameObject selectedGameObject) {
+                var currentCamera = selectedGameObject.GetComponent<Camera>();
+                if (currentCamera != null) {
+                    // FIXME: Possibly should be part of OrbitCameraData
+                    tempCamera.nearClipPlane = currentCamera.nearClipPlane;
+                    tempCamera.farClipPlane = currentCamera.farClipPlane;
+                    tempCamera.orthographic = currentCamera.orthographic;
+                    tempCamera.orthographicSize = currentCamera.orthographicSize;
+                }
+            }
         }
 
         return tempCamera;
