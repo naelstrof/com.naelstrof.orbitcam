@@ -50,7 +50,8 @@ public class OrbitCameraPreview : EditorTool {
         lastData = data;
         RenderTexture temp = GetRenderTexture();
         var camera = GetPreviewCamera();
-        lastData.ApplyTo(camera, new Vector2(temp.width, temp.height));
+        camera.targetTexture = temp;
+        lastData.ApplyTo(camera);
         
         RenderPipeline.StandardRequest request = new RenderPipeline.StandardRequest();
         if (RenderPipeline.SupportsRenderRequest(camera, request)) {
