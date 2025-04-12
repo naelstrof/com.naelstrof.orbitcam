@@ -17,11 +17,16 @@ public struct OrbitCameraData {
         cullingMask = camera.cullingMask;
     }
 
-    public void ApplyTo(Camera cam) {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="cam"></param>
+    /// <param name="screenSize">Screen size in pixels, usually can be grabbed with Screen.width and Screen.height, unless you're targetting a renderTexture</param>
+    public void ApplyTo(Camera cam, Vector2 screenSize) {
         Quaternion cameraRot = rotation;
         cam.fieldOfView = fov;
         cam.transform.rotation = cameraRot;
-        Ray screenRay = OrbitCamera.GetScreenRay(cam, screenPoint);
+        Ray screenRay = OrbitCamera.GetScreenRay(cam, screenPoint, screenSize);
         cam.transform.position = position - screenRay.direction * distance;
         cam.cullingMask = cullingMask;
     }

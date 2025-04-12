@@ -68,14 +68,13 @@ public class OrbitCamera : MonoBehaviour {
         }
     }
     
-    public static Ray GetScreenRay(Camera cam, Vector2 screenPoint) {
-        Vector2 screenSize = new Vector2(Screen.width, Screen.height);
+    public static Ray GetScreenRay(Camera cam, Vector2 screenPoint, Vector2 screenSize) {
         Vector2 desiredScreenPosition = screenPoint*screenSize;
         return cam.ScreenPointToRay(desiredScreenPosition);
     }
 
     protected void SetOrbit(OrbitCameraData data) {
-        data.ApplyTo(cam);
+        data.ApplyTo(cam, new Vector2(Screen.width, Screen.height));
         currentCameraData = data;
     }
     protected virtual void LateUpdate() {

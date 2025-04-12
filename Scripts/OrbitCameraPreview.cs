@@ -3,6 +3,7 @@ using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.EditorTools;
+using UnityEngine.Experimental.Playables;
 
 [EditorTool("Orbit Camera Preview Tool", typeof(OrbitCamera))]
 public class OrbitCameraPreview : EditorTool {
@@ -47,9 +48,9 @@ public class OrbitCameraPreview : EditorTool {
     
     private static RenderTexture RenderPreview(OrbitCameraData data) {
         lastData = data;
-        var camera = GetPreviewCamera();
-        lastData.ApplyTo(camera);
         RenderTexture temp = GetRenderTexture();
+        var camera = GetPreviewCamera();
+        lastData.ApplyTo(camera, new Vector2(temp.width, temp.height));
         
         RenderPipeline.StandardRequest request = new RenderPipeline.StandardRequest();
         if (RenderPipeline.SupportsRenderRequest(camera, request)) {
