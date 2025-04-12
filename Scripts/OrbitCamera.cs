@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using Transform = UnityEngine.Transform;
 #if UNITY_EDITOR
+using GraphProcessor;
 using UnityEditor;
 
 [CustomEditor(typeof(OrbitCamera))]
@@ -13,26 +14,22 @@ public class OrbitCameraEditor : Editor {
         base.OnInspectorGUI();
         var orbitCamera = (OrbitCamera)target;
         var config = orbitCamera.GetConfiguration();
+        var configSerialized = new SerializedObject(config);
         if (config == null) return;
         EditorGUILayout.Separator();
-        EditorGUILayout.LabelField("Auto-detected parameters:");
-        Undo.RecordObject(this, "Orbit Camera");
-        foreach (var node in config.nodes.Where((a) => a is OrbitCameraControllerInput)) {
-            if (node is OrbitCameraFloat f) {
-                f.value = EditorGUILayout.FloatField(f.parameterName, f.value);
-            }
-            if (node is OrbitCameraVector3 p) {
-                p.value = EditorGUILayout.Vector3Field(p.parameterName, p.value);
-            }
-            if (node is OrbitCameraRotation r) {
-                EditorGUI.BeginChangeCheck();
-                var value = EditorGUILayout.Vector3Field(r.parameterName, r.value.eulerAngles);
-                if (EditorGUI.EndChangeCheck()) {
-                    r.value = Quaternion.Euler(value);
-                }
+        EditorGUILayout.LabelField("Exposed parameters:");
+        Undo.RecordObject(config, "Orbit Camera");
+        var exposedParameters = configSerialized.FindProperty("exposedParameters");
+        var parameterCount = exposedParameters.arraySize;
+        for (int i = 0; i < parameterCount; i++) {
+            var exposedParameter = exposedParameters.GetArrayElementAtIndex(i);
+            var hidden = exposedParameter.FindPropertyRelative("settings").FindPropertyRelative("isHidden").boolValue;
+            var parameterName = exposedParameter.FindPropertyRelative("name").stringValue;
+            if (!hidden) {
+                EditorGUILayout.PropertyField(exposedParameter.FindPropertyRelative("val"), new GUIContent(parameterName));
             }
         }
-        serializedObject.ApplyModifiedProperties();
+        configSerialized.ApplyModifiedProperties();
     }
 }
 #endif
@@ -70,31 +67,7 @@ public class OrbitCamera : MonoBehaviour {
             SetOrbit(config.GetData());
         }
     }
-
-    public void SetFloat(string parameterName, float value) {
-        foreach (var node in GetConfiguration().nodes) {
-            if (node is OrbitCameraFloat f && f.parameterName == parameterName) {
-                f.value = value;
-            }
-        }
-    }
     
-    public void SetVector3(string parameterName, Vector3 value) {
-        foreach (var node in GetConfiguration().nodes) {
-            if (node is OrbitCameraVector3 f && f.parameterName == parameterName) {
-                f.value = value;
-            }
-        }
-    }
-    
-    public void SetRotation(string parameterName, Quaternion value) {
-        foreach (var node in GetConfiguration().nodes) {
-            if (node is OrbitCameraRotation f && f.parameterName == parameterName) {
-                f.value = value;
-            }
-        }
-    }
-
     public static Ray GetScreenRay(Camera cam, Vector2 screenPoint) {
         Vector2 screenSize = new Vector2(Screen.width, Screen.height);
         Vector2 desiredScreenPosition = screenPoint*screenSize;
