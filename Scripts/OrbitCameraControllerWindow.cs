@@ -7,16 +7,17 @@ using UnityEngine;
 using UnityEditor;
 
 public class OrbitCameraControllerWindow : BaseGraphWindow {
+    private ToolbarView toolbarView;
     public static BaseGraphWindow Open(OrbitCameraController graph) {
         // Focus the window if the graph is already opened
-        var mixtureWindows = Resources.FindObjectsOfTypeAll<OrbitCameraControllerWindow>();
-        foreach (var mixtureWindow in mixtureWindows)
+        var orbitCameraWindows = Resources.FindObjectsOfTypeAll<OrbitCameraControllerWindow>();
+        foreach (var orbitCameraWindow in orbitCameraWindows)
         {
-            if (mixtureWindow.graph == graph)
+            if (orbitCameraWindow.graph == graph)
             {
-                mixtureWindow.Show();
-                mixtureWindow.Focus();
-                return mixtureWindow;
+                orbitCameraWindow.Show();
+                orbitCameraWindow.Focus();
+                return orbitCameraWindow;
             }
         }
 
@@ -34,7 +35,11 @@ public class OrbitCameraControllerWindow : BaseGraphWindow {
         // Set the window title
         titleContent = new GUIContent(graph.name);
         // Here you can use the default BaseGraphView or a custom one (see section below)
-        var graphView = new BaseGraphView(this);
+        if (graphView == null) {
+            graphView = new BaseGraphView(this);
+            toolbarView = new OrbitCameraToolbar(graphView);
+            graphView.Add(toolbarView);
+        }
         rootView.Add(graphView);
     }
     
