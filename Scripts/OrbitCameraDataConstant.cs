@@ -1,7 +1,7 @@
 using GraphProcessor;
 using UnityEngine;
 
-[System.Serializable, NodeMenuItem("OrbitCamera/Memory")]
+[System.Serializable, NodeMenuItem("OrbitCamera/Constant")]
 public class OrbitCameraDataConstant : OrbitCameraControllerNode {
     
     //public OrbitCameraData data;
