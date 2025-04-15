@@ -24,11 +24,16 @@ public class OrbitCameraController : BaseGraph {
     public void Process() {
         if (_graphProcessor == null) {
             _graphProcessor = new ProcessGraphProcessor(this);
-            _graphProcessor.UpdateComputeOrder();
+            OnGraphChanged(null);
+            onGraphChanges += OnGraphChanged;
         }
         _graphProcessor.Run();
     }
-    
+
+    private void OnGraphChanged(GraphChanges obj) {
+        _graphProcessor.UpdateComputeOrder();
+    }
+
     public OrbitCameraData GetData() {
         foreach (var node in graphOutputs) {
             if (node is not OrbitCameraOutput output) {

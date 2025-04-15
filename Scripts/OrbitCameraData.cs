@@ -7,7 +7,6 @@ public struct OrbitCameraData {
     public Vector2 screenPoint;
     public Quaternion rotation; 
     public LayerMask cullingMask;
-    
     public OrbitCameraData(Camera camera) {
         position = camera.transform.position;
         distance = 0f;
@@ -54,12 +53,21 @@ public struct OrbitCameraData {
     public static OrbitCameraData Lerp(OrbitCameraData pivotA, OrbitCameraData pivotB, float t) {
         if (float.IsNaN(t)) {
             Debug.LogError("Tried to lerp with nan t");
+            return new OrbitCameraData() {
+                rotation = Quaternion.identity
+            };
         }
         if (!pivotA.IsValid()) {
-            Debug.LogError("Tried to lerp with nan pivot A");
+            Debug.LogError($"Tried to lerp with nan pivot A {pivotA}");
+            return new OrbitCameraData() {
+                rotation = Quaternion.identity
+            };
         }
         if (!pivotB.IsValid()) {
-            Debug.LogError("Tried to lerp with nan pivot B");
+            Debug.LogError($"Tried to lerp with nan pivot B {pivotB}");
+            return new OrbitCameraData() {
+                rotation = Quaternion.identity
+            };
         }
 
         return new OrbitCameraData {
@@ -73,6 +81,6 @@ public struct OrbitCameraData {
     }
 
     public override string ToString() {
-        return $"CameraData:{{position:{position}, rotation:{rotation.eulerAngles}, distance:{distance}, fov:{fov}, screenPoint:{screenPoint}, cullingMask:{cullingMask}}}";
+        return $"CameraData:{{position:{position}, rotation:{rotation}, distance:{distance}, fov:{fov}, screenPoint:{screenPoint}, cullingMask:{((int)cullingMask).ToString("X")}}}";
     }
 }
