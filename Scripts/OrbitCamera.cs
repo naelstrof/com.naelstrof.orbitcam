@@ -74,6 +74,7 @@ public class OrbitCamera : MonoBehaviour {
     }
 
     protected void SetOrbit(OrbitCameraData data) {
+        data.rotation = data.rotation.normalized;
         data.ApplyTo(cam);
         currentCameraData = data;
     }
