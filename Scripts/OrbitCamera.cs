@@ -14,8 +14,8 @@ public class OrbitCameraEditor : Editor {
         base.OnInspectorGUI();
         var orbitCamera = (OrbitCamera)target;
         var config = orbitCamera.GetConfiguration();
-        var configSerialized = new SerializedObject(config);
         if (config == null) return;
+        var configSerialized = new SerializedObject(config);
         EditorGUILayout.Separator();
         EditorGUILayout.LabelField("Exposed parameters:");
         Undo.RecordObject(config, "Orbit Camera");
