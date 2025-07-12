@@ -156,6 +156,21 @@ public partial class OrbitCamera : MonoBehaviour {
         }
     }
 
+    public static void AddConfigurationAtIndex(OrbitCameraConfiguration newConfig, int index, float tweenDuration = 0.4f) {
+        if (orbitCameraConfigurations.Contains(newConfig)) {
+            throw new UnityException("Tried to add a camera config more than once!");
+        }
+
+        orbitCameraConfigurations.Insert(index, newConfig);
+
+        if (instance == null) {
+            return;
+        }
+        if (orbitCameraConfigurations.Count == index + 1) {
+            instance.BeginTween(GetCurrentCameraData(), newConfig, tweenDuration);
+        }
+    }
+
     public static void RemoveConfiguration(OrbitCameraConfiguration config, float tweenDuration = 0.4f) {
         if (instance == null) {
             return;
