@@ -70,8 +70,9 @@ public partial class OrbitCamera : MonoBehaviour {
         if (paused) {
             return;
         }
+        var sensitivity = mouseSensitivity?.GetValue() ?? 0.01f;
         // Always let player control
-        Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+        Vector2 mouseDelta = Mouse.current.delta.ReadValue() * sensitivity;
         if (Gamepad.current != null) {
             Vector2 gamepadLook = Gamepad.current.rightStick.ReadValue();
             float deadzone = 0.15f;
@@ -81,15 +82,8 @@ public partial class OrbitCamera : MonoBehaviour {
         }
 
         if (controls != null) {
-            if (controls.actions["ActivateLook"].IsPressed()) {
-                mouseDelta = controls.actions["Look"].ReadValue<Vector2>() + controls.actions["LookJoystick"].ReadValue<Vector2>();
-            } else {
-                mouseDelta = Vector2.zero;
-            }
+            mouseDelta = controls.actions["Look"].ReadValue<Vector2>() * sensitivity + controls.actions["LookJoystick"].ReadValue<Vector2>();
         }
-
-        //float mouseSensitivity = 0.1f;
-        mouseDelta *= mouseSensitivity?.GetValue() ?? 0.01f;
 
         if (tracking) {
             _aim += mouseDelta;
@@ -159,6 +153,21 @@ public partial class OrbitCamera : MonoBehaviour {
         }
         if (instance.currentConfiguration == oldConfig) {
             instance.BeginTween(GetCurrentCameraData(), orbitCameraConfigurations[^1], tweenDuration);
+        }
+    }
+
+    public static void AddConfigurationAtIndex(OrbitCameraConfiguration newConfig, int index, float tweenDuration = 0.4f) {
+        if (orbitCameraConfigurations.Contains(newConfig)) {
+            throw new UnityException("Tried to add a camera config more than once!");
+        }
+
+        orbitCameraConfigurations.Insert(index, newConfig);
+
+        if (instance == null) {
+            return;
+        }
+        if (orbitCameraConfigurations.Count == index + 1) {
+            instance.BeginTween(GetCurrentCameraData(), newConfig, tweenDuration);
         }
     }
 
