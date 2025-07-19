@@ -78,7 +78,7 @@ public partial class OrbitCamera : MonoBehaviour {
             float deadzone = 0.15f;
             gamepadLook = new Vector2(Mathf.MoveTowards(gamepadLook.x, 0f, 0.15f)/(1f-deadzone),
                                       Mathf.MoveTowards(gamepadLook.y, 0f, 0.15f)/(1f-deadzone));
-            mouseDelta += gamepadLook * 40f;
+            mouseDelta += gamepadLook * 40f * sensitivity;
         }
 
         if (controls != null) {
