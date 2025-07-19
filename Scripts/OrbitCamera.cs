@@ -25,7 +25,6 @@ public partial class OrbitCamera : MonoBehaviour {
     
     private Vector2 _aim;
     private Camera cam;
-    private PlayerInput controls;
     private static bool tracking = true;
     private Quaternion postRotationOffset = Quaternion.identity;
     private OrbitCameraData currentCameraData = new(){rotation = Quaternion.identity, position = Vector3.zero, fov = 65f, screenPoint = Vector2.one*0.5f, distance = 1f};
@@ -78,11 +77,7 @@ public partial class OrbitCamera : MonoBehaviour {
             float deadzone = 0.15f;
             gamepadLook = new Vector2(Mathf.MoveTowards(gamepadLook.x, 0f, 0.15f)/(1f-deadzone),
                                       Mathf.MoveTowards(gamepadLook.y, 0f, 0.15f)/(1f-deadzone));
-            mouseDelta += gamepadLook * 40f;
-        }
-
-        if (controls != null) {
-            mouseDelta = controls.actions["Look"].ReadValue<Vector2>() * sensitivity + controls.actions["LookJoystick"].ReadValue<Vector2>();
+            mouseDelta += gamepadLook * 40f * sensitivity;
         }
 
         if (tracking) {
@@ -242,10 +237,6 @@ public partial class OrbitCamera : MonoBehaviour {
         Quaternion lookDir = QuaternionExtensions.LookRotationUpPriority(dir, Vector3.up);
         var euler = lookDir.eulerAngles;
         instance._aim = new Vector2(-lookDir.y, lookDir.x);
-    }
-
-    public static void SetPlayerInput(PlayerInput input) {
-        instance.controls = input;
     }
 
     public static Camera GetCamera() {
